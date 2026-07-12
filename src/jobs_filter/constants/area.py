@@ -1,4 +1,25 @@
-taipei_districts = [
+from typing import TypedDict, List
+
+
+class District(TypedDict):
+  id: str
+  full: str
+
+
+class City(TypedDict):
+  id: str
+  full: str
+  short: str
+  districts: List[District]
+
+
+class Country(TypedDict):
+  id: str
+  full: str
+  cities: List[City]
+
+
+taipei_districts: List[District] = [
   {'id': '6001001001', 'full': 'Zhongzheng District, Taipei City, Taiwan'},
   {'id': '6001001002', 'full': 'Datong District, Taipei City, Taiwan'},
   {'id': '6001001003', 'full': 'Zhongshan District, Taipei City, Taiwan'},
@@ -13,7 +34,8 @@ taipei_districts = [
   {'id': '6001001012', 'full': 'Wenshan District, Taipei City, Taiwan'},
 ]
 
-new_taipei_districts = [
+
+new_taipei_districts: List[District] = [
   {'id': '6001002001', 'full': 'Wanli District, New Taipei City, Taiwan'},
   {'id': '6001002002', 'full': 'Jinshan District, New Taipei City, Taiwan'},
   {'id': '6001002003', 'full': 'Banqiao District, New Taipei City, Taiwan'},
@@ -45,7 +67,7 @@ new_taipei_districts = [
   {'id': '6001002029', 'full': 'Shimen District, New Taipei City, Taiwan'},
 ]
 
-nested_cities_and_districts = [
+nested_cities_and_districts: List[Country] = [
   {
     'id': '6001000000',
     'full': 'Taiwan',

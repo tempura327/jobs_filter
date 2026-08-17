@@ -12,7 +12,7 @@ ua = UserAgent()
 class OneOFourClient:
   def __init__(self):
     self.current_page = 0
-    self.has_next_page = True
+    self.last_page = None
 
   @staticmethod
   def __get_headers(url):
@@ -27,8 +27,8 @@ class OneOFourClient:
       'User-Agent': ua.random,
     }
 
-  def search(self, payload: OneOFourSearchPayload) -> list[OneOFourSearchResponse] | None:
-    if not self.has_next_page and payload['page'] > self.current_page:
+  def search(self, payload: OneOFourSearchPayload) -> OneOFourSearchResponse | None:
+    if self.last_page is not None and payload['page'] > self.last_page:
       raise Exception('There is no next page.')
 
     try:
@@ -40,15 +40,15 @@ class OneOFourClient:
 
       response.raise_for_status()
 
-      data = response.json()
-      raw_data = data.get('data', [])
+      res: OneOFourSearchResponse = response.json()
+      page_info = res['metadata']['pagination']
 
-      self.current_page += 1
+      self.current_page = page_info['currentPage']
 
-      if len(raw_data) < payload['page_size']:
-        self.has_next_page = False
+      if self.last_page is None:
+        self.last_page = page_info['lastPage']
 
-      return raw_data
+      return res
 
     except httpx.HTTPError as http_err:
       raise RuntimeError(f'HTTP Error: {http_err}') from http_err

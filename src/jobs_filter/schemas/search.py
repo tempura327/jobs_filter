@@ -48,6 +48,21 @@ class SearchJobsPayload(BaseModel):
     return value
 
 
+class JobData(BaseModel):
+  title: str
+  company: str
+  link: str
+  min_salary: float | None
+  max_salary: float | None
+  salary_type: SalaryType | None
+
+
+class SearchJobsResponse(BaseModel):
+  data: list[JobData]
+  page: int
+  page_size: int
+
+
 class OneOFourOrderField(int, Enum):
   MostRelated = 15
   Latest = 16
@@ -75,7 +90,18 @@ class OneOFourJobLinks(TypedDict):
   applyAnalyze: str
 
 
-class OneOFourSearchResponse(TypedDict):
+class OneOFourPageInfo(TypedDict):
+  count: int
+  currentPage: int
+  lastPage: int
+  total: int
+
+
+class OneOFourSearchMetadata(TypedDict):
+  pagination: OneOFourPageInfo
+
+
+class OneOFourSearchData(TypedDict):
   appearDate: str
   custName: str
   description: str
@@ -97,6 +123,11 @@ class OneOFourSearchResponse(TypedDict):
   salaryHigh: float
 
 
+class OneOFourSearchResponse(TypedDict):
+  metadata: OneOFourSearchMetadata
+  data: list[OneOFourSearchData]
+
+
 class CakeOrderField(str, Enum):
   popularity = 'popularity'
   Latest = 'latest'
@@ -108,18 +139,3 @@ class CakeSearchPayload(TypedDict):
   sort_by: CakeOrderField
   page: int
   per_page: int
-
-
-class JobData(BaseModel):
-  title: str
-  company: str
-  link: str
-  min_salary: float | None
-  max_salary: float | None
-  salary_type: SalaryType | None
-
-
-class SearchJobsResponse(BaseModel):
-  data: list[JobData]
-  page: int
-  page_size: int

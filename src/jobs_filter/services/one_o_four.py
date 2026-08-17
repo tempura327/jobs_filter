@@ -1,20 +1,19 @@
 from jobs_filter.clients.one_o_four import OneOFourClient
 from jobs_filter.schemas.search import (
   OneOFourSearchPayload,
-  OneOFourSearchResponse,
+  OneOFourSearchData,
   JobData,
   SalaryType,
+  SearchJobsResponse,
 )
 
 
-class SearchService:
+class OneOFourService:
   def __init__(self, one_o_four_client: OneOFourClient):
     self.one_o_four = one_o_four_client
 
   @staticmethod
-  def __filter_valid_jobs(
-    data: list[OneOFourSearchResponse], options
-  ) -> list[OneOFourSearchResponse]:
+  def __filter_valid_jobs(data: list[OneOFourSearchData], options) -> list[OneOFourSearchData]:
     is_negotiation_acceptable = options.get('is_negotiation_acceptable', False)
     base = options.get('base', 0)
 
@@ -45,7 +44,7 @@ class SearchService:
     return None
 
   @staticmethod
-  def __format_job(data: OneOFourSearchResponse) -> JobData:
+  def __format_job(data: OneOFourSearchData) -> JobData:
     title = data.get('jobName', '')
     company = data.get('custName', {})
 
@@ -53,7 +52,7 @@ class SearchService:
     max_val = float(data.get('salaryHigh') or 0)
 
     job_link = data.get('link', {}).get('job')
-    salary_type = SearchService.__get_salary_type(data.get('s10', 10))
+    salary_type = OneOFourService.__get_salary_type(data.get('s10', 10))
 
     return JobData(
       title=title,
@@ -64,18 +63,21 @@ class SearchService:
       salary_type=salary_type,
     )
 
-  def search(self, payload: OneOFourSearchPayload) -> list[JobData]:
+  def search(self, payload: OneOFourSearchPayload) -> SearchJobsResponse:
     data = self.one_o_four.search(payload)
 
+    if data is None:
+      return SearchJobsResponse(data=[], page=0, page_size=0)
+
     target_jobs = self.__filter_valid_jobs(
-      data or [],
+      data.get('data', []),
       {'is_negotiation_acceptable': bool(payload.get('scneg', 1)), 'base': payload.get('scmin', 0)},
     )
-    target_jobs_count = len(target_jobs)
-
-    if target_jobs_count < 1:
-      return []
 
     formatted_jobs = list(map(self.__format_job, target_jobs))
 
-    return formatted_jobs
+    page_info = data['metadata']['pagination']
+
+    return SearchJobsResponse(
+      data=formatted_jobs, page=page_info['currentPage'], page_size=len(formatted_jobs)
+    )

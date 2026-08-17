@@ -1,7 +1,7 @@
 import httpx
 from fake_useragent import UserAgent
 
-from jobs_filter.schemas.search import OneOFourSearchPayload
+from jobs_filter.schemas.search import OneOFourSearchPayload, OneOFourSearchResponse
 from jobs_filter.common.utils import get_query_string
 
 BASE_URL = 'https://www.104.com.tw/'
@@ -27,12 +27,12 @@ class OneOFourClient:
       'User-Agent': ua.random,
     }
 
-  def search(self, payload: OneOFourSearchPayload):
-    if not self.has_next_page and payload.page > self.current_page:
+  def search(self, payload: OneOFourSearchPayload) -> list[OneOFourSearchResponse] | None:
+    if not self.has_next_page and payload['page'] > self.current_page:
       raise Exception('There is no next page.')
 
     try:
-      query_string = get_query_string(payload)
+      query_string = get_query_string(dict(payload))
       url = f'{BASE_URL}jobs/search/api/jobs?{query_string}'
       headers = self.__get_headers(url)
 
@@ -45,13 +45,13 @@ class OneOFourClient:
 
       self.current_page += 1
 
-      if len(raw_data) < payload.page_size:
+      if len(raw_data) < payload['page_size']:
         self.has_next_page = False
 
       return raw_data
 
-    except httpx.exceptions.HTTPError as http_err:
-      print(f'HTTP Error: {http_err}. {response.text}')
+    except httpx.HTTPError as http_err:
+      raise RuntimeError(f'HTTP Error: {http_err}') from http_err
 
     except Exception as err:
-      print(f'Exception: {err}')
+      raise RuntimeError(f'Exception: {err}') from err

@@ -6,6 +6,7 @@ from jobs_filter.constants.area import nested_cities_and_districts, Country
 
 
 class SalaryType(str, Enum):
+  day = 'D'
   year = 'Y'
   month = 'M'
 
@@ -30,7 +31,7 @@ class SearchJobsPayload(BaseModel):
   title: str
   district_ids: list[str] | None = Field(default=None, description='城市或區域的代號')
   min_salary: float = Field(100, gt=0)
-  salary_type: SalaryType = Field(default='M', description='年薪或月薪')
+  salary_type: SalaryType = Field(default=SalaryType.month, description='年薪或月薪')
   is_negotiation_acceptable: bool = Field(default=True, description='是否接受面議')
   page: int
 
@@ -60,14 +61,43 @@ class OneOFourSearchPayload(TypedDict):
   mode: str
   order: OneOFourOrderField
   scmin: float
+  # 0 means only jobs which it is non-negotiable salary should be shown.
   scneg: Literal[0, 1]
   scstrict: Literal[0, 1]
   sctp: SalaryType
-  page: str
+  page: int
   page_size: int
 
 
-class CakeOrderField(int, Enum):
+class OneOFourJobLinks(TypedDict):
+  job: str
+  cust: str
+  applyAnalyze: str
+
+
+class OneOFourSearchResponse(TypedDict):
+  appearDate: str
+  custName: str
+  description: str
+  jobAddress: str
+  jobAddrNo: str
+  jobAddrNoDesc: str
+  jobName: str
+  jobType: int
+  lat: float
+  lon: float
+  link: OneOFourJobLinks
+  # salary type
+  # 10: unknown
+  # 40: day
+  # 50: month
+  # 60: year
+  s10: int
+  salaryLow: float
+  salaryHigh: float
+
+
+class CakeOrderField(str, Enum):
   popularity = 'popularity'
   Latest = 'latest'
 
@@ -80,12 +110,12 @@ class CakeSearchPayload(TypedDict):
   per_page: int
 
 
-class JobData:
+class JobData(BaseModel):
   title: str
   company: str
   link: str
-  min_salary: int | None
-  max_salary: int | None
+  min_salary: float | None
+  max_salary: float | None
   salary_type: SalaryType | None
 
 

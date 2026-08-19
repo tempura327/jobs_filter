@@ -13,7 +13,7 @@ class OneOFourService:
     self.one_o_four = one_o_four_client
 
   @staticmethod
-  def __filter_valid_jobs(data: list[OneOFourSearchData], options) -> list[OneOFourSearchData]:
+  def _filter_valid_jobs(data: list[OneOFourSearchData], options) -> list[OneOFourSearchData]:
     is_negotiation_acceptable = options.get('is_negotiation_acceptable', False)
     base = options.get('base', 0)
 
@@ -31,7 +31,7 @@ class OneOFourService:
     return res
 
   @staticmethod
-  def __get_salary_type(typeCode: int) -> SalaryType | None:
+  def _get_salary_type(typeCode: int) -> SalaryType | None:
     if typeCode == 40:
       return SalaryType.day
 
@@ -44,7 +44,7 @@ class OneOFourService:
     return None
 
   @staticmethod
-  def __format_job(data: OneOFourSearchData) -> JobData:
+  def _format_job(data: OneOFourSearchData) -> JobData:
     title = data.get('jobName', '')
     company = data.get('custName', {})
 
@@ -52,7 +52,7 @@ class OneOFourService:
     max_val = float(data.get('salaryHigh') or 0)
 
     job_link = data.get('link', {}).get('job')
-    salary_type = OneOFourService.__get_salary_type(data.get('s10', 10))
+    salary_type = OneOFourService._get_salary_type(data.get('s10', 10))
 
     return JobData(
       title=title,
@@ -69,12 +69,12 @@ class OneOFourService:
     if data is None:
       return SearchJobsResponse(data=[], page=0, page_size=0)
 
-    target_jobs = self.__filter_valid_jobs(
+    target_jobs = self._filter_valid_jobs(
       data.get('data', []),
       {'is_negotiation_acceptable': bool(payload.get('scneg', 1)), 'base': payload.get('scmin', 0)},
     )
 
-    formatted_jobs = list(map(self.__format_job, target_jobs))
+    formatted_jobs = list(map(self._format_job, target_jobs))
 
     page_info = data['metadata']['pagination']
 

@@ -133,9 +133,13 @@ class CakeOrderField(str, Enum):
   Latest = 'latest'
 
 
+class CakeSearchFilter(TypedDict):
+  locations: list[str] | None
+
+
 class CakeSearchPayload(TypedDict):
   query: str
-  locations: List[str] | None
+  filters: CakeSearchFilter | None
   sort_by: CakeOrderField
   page: int
   per_page: int

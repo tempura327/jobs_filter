@@ -26,13 +26,14 @@ class SearchJobsMapper:
       'order': OneOFourOrderField.Latest,
       'scmin': req.min_salary,
       # 0為排除面議
-      'scneg': int(req.is_negotiation_acceptable),
+      'scneg': 1 if req.is_negotiation_acceptable else 0,
       'scstrict': ONE_O_FOUR_IS_STRICT,
       'sctp': req.salary_type,
       'page': req.page,
-      'pageSize': PER_PAGE,
+      'page_size': PER_PAGE,
     }
 
+  @staticmethod
   def _get_area_name_by_id(data: Country | City | District, target_id: str) -> str:
     if 'id' in data and data['id'] == target_id:
       return data['full']

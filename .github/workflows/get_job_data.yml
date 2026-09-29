@@ -87,7 +87,7 @@ jobs:
             -H 'Accept-Encoding: gzip, deflate, br, zstd' \
             -H 'Accept-Language: en,en-US;q=0.9,zh-TW;q=0.8,zh;q=0.7' \
             -H 'Connection: keep-alive' \
-            -H "Referer: ${{ steps.get_referer.outputs.referer }}"" \
+            -H "Referer: ${{ steps.get_referer.outputs.referer }}" \
             -H "User-Agent: ${{ steps.get_user_agent.outputs.user_agent }}" \
             "${{ env.URL }}")
 

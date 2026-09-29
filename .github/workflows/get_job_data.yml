@@ -89,7 +89,9 @@ jobs:
             -H 'Connection: keep-alive' \
             -H "Referer: ${{ steps.get_referer.outputs.referer }}" \
             -H "User-Agent: ${{ steps.get_user_agent.outputs.user_agent }}" \
-            "${{ env.base_url }}${{ steps.get_query_string.outputs.query_string }}")
+            "https://www.104.com.tw/jobs/search/api/jobs?area=6001001011&jobsource=joblist_search&keyword=FrontEnd%20Engineer&mode=s&order=15&page=1&pagesize=20&personalBoost=1")
+
+          echo "${{ env.base_url }}${{ steps.get_query_string.outputs.query_string }}"
 
           echo "Response:"
           echo "$response"

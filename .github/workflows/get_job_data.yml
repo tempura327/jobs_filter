@@ -75,6 +75,7 @@ jobs:
           # 這是要把中文轉unicode，避免keyword有中文時，會報latin-1的錯誤
           referer=$(printf '%s' "$URL" | jq -Rsa . | sed 's/^"//; s/"$//')
 
+          echo $referer
           echo "referer=$referer" >> "$GITHUB_OUTPUT"
 
       - name: query One O Four
@@ -87,10 +88,11 @@ jobs:
             -H 'Accept-Encoding: gzip, deflate, br, zstd' \
             -H 'Accept-Language: en,en-US;q=0.9,zh-TW;q=0.8,zh;q=0.7' \
             -H 'Connection: keep-alive' \
-            -H "Referer: ${{ steps.get_referer.outputs.referer }}" \
+            -H "Referer: https://www.104.com.tw/jobs/search/?area=6001001011&jobsource=joblist_search&keyword=FrontEnd+Engineer&mode=s&order=15&page=1" \
             -H "User-Agent: ${{ steps.get_user_agent.outputs.user_agent }}" \
             "https://www.104.com.tw/jobs/search/api/jobs?area=6001001011&jobsource=joblist_search&keyword=FrontEnd%20Engineer&mode=s&order=15&page=1&pagesize=20&personalBoost=1")
 
+          echo ${{ steps.get_referer.outputs.referer }}
           echo "${{ env.base_url }}${{ steps.get_query_string.outputs.query_string }}"
 
           echo "Response:"

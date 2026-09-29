@@ -8,6 +8,8 @@ on:
     inputs:
       page:
         default: 1
+env:
+  url: https://www.104.com.tw/jobs/search/api/jobs?
 
 jobs:
   query_data:
@@ -54,7 +56,7 @@ jobs:
           echo "query_string=${query_string}" >> "$GITHUB_OUTPUT"
 
       - name: Get random User-Agent
-        id: get_ua
+        id: get_user_agent
         run: |
           UAS=(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
@@ -66,11 +68,37 @@ jobs:
 
           echo "user_agent=$UA" >> "$GITHUB_OUTPUT" 
 
+      - name: Get Referer
+        id: get_referer
+        run: |
+          # 等同於 Python: url.encode("unicode_escape").decode("utf-8")
+          # 這是要把中文轉unicode，避免keyword有中文時，會報latin-1的錯誤
+          referer=$(printf '%s' "$URL" | jq -Rsa . | sed 's/^"//; s/"$//')
+
+          echo "referer=$referer" >> "$GITHUB_OUTPUT"
+
       - name: query One O Four
         id: query_one_o_four
         run: |
-          echo ${{ steps.get_query_string.outputs.query_string }}"
-          echo ${{ steps.get_ua.outputs.user_agent }}"
+          echo "Sending GET request to: ${{ env.URL }}"
+
+          response=$(curl --fail --silent --show-error \
+            -H 'Accept: application/json, text/plain, */*' \
+            -H 'Accept-Encoding: gzip, deflate, br, zstd' \
+            -H 'Accept-Language: en,en-US;q=0.9,zh-TW;q=0.8,zh;q=0.7' \
+            -H 'Connection: keep-alive' \
+            -H "Referer: ${{ steps.get_referer.outputs.referer }}"" \
+            -H "User-Agent: ${{ steps.get_user_agent.outputs.user_agent }}" \
+            "${{ env.URL }}")
+
+          echo "Response:"
+          echo "$response"
+
+          {
+            echo 'response<<EOF'
+            echo "$response"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       # - name: Filter Data
       #   run: |

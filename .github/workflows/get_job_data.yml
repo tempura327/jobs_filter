@@ -9,7 +9,7 @@ on:
       page:
         default: 1
 env:
-  url: https://www.104.com.tw/jobs/search/api/jobs?
+  base_url: https://www.104.com.tw/jobs/search/api/jobs?
 
 jobs:
   query_data:
@@ -80,7 +80,7 @@ jobs:
       - name: query One O Four
         id: query_one_o_four
         run: |
-          echo "Sending GET request to: ${{ env.URL }}"
+          echo "Sending GET request to: ${{ env.base_url }}"
 
           response=$(curl --fail --silent --show-error \
             -H 'Accept: application/json, text/plain, */*' \
@@ -89,7 +89,7 @@ jobs:
             -H 'Connection: keep-alive' \
             -H "Referer: ${{ steps.get_referer.outputs.referer }}" \
             -H "User-Agent: ${{ steps.get_user_agent.outputs.user_agent }}" \
-            "${{ env.URL }}")
+            "${{ env.base_url }}${{ steps.get_query_string.outputs.query_string }}")
 
           echo "Response:"
           echo "$response"

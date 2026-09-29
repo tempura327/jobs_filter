@@ -89,9 +89,9 @@ jobs:
             -H 'Accept-Encoding: gzip, deflate, br, zstd' \
             -H 'Accept-Language: en,en-US;q=0.9,zh-TW;q=0.8,zh;q=0.7' \
             -H 'Connection: keep-alive' \
-            -H "Referer: https://www.104.com.tw/jobs/search/?area=6001001011&jobsource=joblist_search&keyword=FrontEnd+Engineer&mode=s&order=15&page=1" \
+            -H "Referer: https://www.104.com.tw/jobs/search/?scstrict=1&sortBy=15&scmin=60000&scneg=1&area=6001001004,6001001007,6001001011,6001001010&mode=s&jobsource=joblist_search&keyword=frontend&sctp=M&page=1&pageSize=30&order=15" \
             -H "User-Agent: ${{ steps.get_user_agent.outputs.user_agent }}" \
-            "https://www.104.com.tw/jobs/search/api/jobs?area=6001001011&jobsource=joblist_search&keyword=FrontEnd%20Engineer&mode=s&order=15&page=1&pagesize=20&personalBoost=1")
+            "https://www.104.com.tw/jobs/search/api/jobs?area=6001001004%2C6001001007%2C6001001011%2C6001001010&jobsource=joblist_search&keyword=frontend&mode=s&order=15&page=1&pageSize=30&pagesize=20&personalBoost=1&scmin=60000&scneg=1&scstrict=1&sctp=M&sortBy=15")
 
           echo ${{ steps.get_referer.outputs.referer }}
           echo "${{ env.base_url }}${{ steps.get_query_string.outputs.query_string }}"

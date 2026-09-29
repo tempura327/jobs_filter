@@ -10,7 +10,7 @@ on:
         default: 1
 
 jobs:
-  query data:
+  query_data:
     runs-on: ubuntu-latest
     outputs:
       one_o_four_data: ${{ steps.query_one_o_four.outputs.data }}

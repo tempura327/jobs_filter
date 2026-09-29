@@ -10,6 +10,7 @@ on:
         default: 1
 env:
   base_url: https://www.104.com.tw/jobs/search/api/jobs?
+  referer_base_url: https://www.104.com.tw/jobs/search/?
 
 jobs:
   query_data:
@@ -73,7 +74,7 @@ jobs:
         run: |
           # 等同於 Python: url.encode("unicode_escape").decode("utf-8")
           # 這是要把中文轉unicode，避免keyword有中文時，會報latin-1的錯誤
-          referer=$(printf '%s' "$URL" | jq -Rsa . | sed 's/^"//; s/"$//')
+          referer=$(printf '%s' "${{ env.referer_base_url }}${{ steps.get_query_string.outputs.query_string }}" | jq -Rsa . | sed 's/^"//; s/"$//')
 
           echo $referer
           echo "referer=$referer" >> "$GITHUB_OUTPUT"

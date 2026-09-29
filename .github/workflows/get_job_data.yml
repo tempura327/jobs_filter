@@ -8,6 +8,8 @@ on:
     inputs:
       page:
         default: 1
+env:
+  url: https://www.104.com.tw/jobs/search/api/jobs?
 
 jobs:
   query_data:
@@ -18,35 +20,43 @@ jobs:
     steps:
       - name: Get query string
         id: get_query_string
+        shell: bash
         run: |
-          payload_json='{"area": ["6001001004", "6001001007", "6001001011", "6001001010"], "jobsource": "joblist_search", "mode": "s", "order": "15", "scstrict": 1, "scmin": 60000, "sctp": "M", "sortBy": "15", "pageSize": 30, "scneg": 1, "page": "${{ github.event.inputs.page }}", "keyword": ["frontend", "front-end"]}'
+          query_string=""
 
-          QS=""
+          declare -A payload=(
+            [area]="6001001004,6001001007,6001001011,6001001010"
+            [jobsource]="joblist_search"
+            [mode]="s"
+            [order]="15"
+            [scstrict]="1"
+            [scmin]="60000"
+            [sctp]="M"
+            [sortBy]="15"
+            [pageSize]="30"
+            [scneg]="1"
+            [page]="${{ inputs.page }}"
+            [keyword]="frontend,front-end"
+          )
 
-          # Use jq to iterate over the keys and values
-          jq -c 'to_entries[]' <<< "$payload_json" | while read -r entry; do
-              key=$(echo "$entry" | jq -r .key)
-              value=$(echo "$entry" | jq -r .value)
+          for key in "${!payload[@]}"; do
+            value="${payload[$key]}"
 
-              if [[ "$value" == "["*"]" ]]; then
-                cleaned_value=$(echo "$value" | jq -r 'join(",")')
-                encoded_value=$(echo "$cleaned_value" | sed 's/,/%2C/g')
-              else
-                # Otherwise, just URL-encode the value
-                encoded_value=$(echo "$value" | jq -r @uri)
-              fi
+            if [[ "$key" == "area" || "$key" == "keyword" ]]; then
+              value="${value//,/%2C}"
+            fi
 
-              if [[ -z "$QS" ]]; then
-                QS="${key}=${encoded_value}"
-              else
-                QS="${QS}&${key}=${encoded_value}"
-              fi
+            if [[ -n "$query_string" ]]; then
+              query_string+="&"
+            fi
+
+            query_string+="${key}=${value}"
           done
 
-          echo "query_string=$QS" >> "$GITHUB_OUTPUT"
+          echo "query_string=${query_string}" >> "$GITHUB_OUTPUT"
 
       - name: Get random User-Agent
-        id: get_ua
+        id: get_user_agent
         run: |
           UAS=(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
@@ -54,21 +64,41 @@ jobs:
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15"
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
           )
-
           UA="${UAS[$RANDOM % ${#UAS[@]}]}"
-          echo "user_agent=$UA" >> "$GITHUB_OUTPUT"
+
+          echo "user_agent=$UA" >> "$GITHUB_OUTPUT" 
+
+      - name: Get Referer
+        id: get_referer
+        run: |
+          # 等同於 Python: url.encode("unicode_escape").decode("utf-8")
+          # 這是要把中文轉unicode，避免keyword有中文時，會報latin-1的錯誤
+          referer=$(printf '%s' "$URL" | jq -Rsa . | sed 's/^"//; s/"$//')
+
+          echo "referer=$referer" >> "$GITHUB_OUTPUT"
 
       - name: query One O Four
         id: query_one_o_four
         run: |
-          echo ${{ steps.get_query_string.query_string }}"
-          echo ${{ steps.get_ua.outputs.user_agent }}"
-          echo $QS
-          echo $UA
+          echo "Sending GET request to: ${{ env.URL }}"
+
+          response=$(curl --fail --silent --show-error \
+            -H 'Accept: application/json, text/plain, */*' \
+            -H 'Accept-Encoding: gzip, deflate, br, zstd' \
+            -H 'Accept-Language: en,en-US;q=0.9,zh-TW;q=0.8,zh;q=0.7' \
+            -H 'Connection: keep-alive' \
+            -H "Referer: ${{ steps.get_referer.outputs.referer }}"" \
+            -H "User-Agent: ${{ steps.get_user_agent.outputs.user_agent }}" \
+            "${{ env.URL }}")
+
+          echo "Response:"
+          echo "$response"
+
+          {
+            echo 'response<<EOF'
+            echo "$response"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       # - name: Filter Data
       #   run: |
-
-          
-
-  

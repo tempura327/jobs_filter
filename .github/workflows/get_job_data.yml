@@ -1,0 +1,74 @@
+name: Get Job Data
+
+on:
+  schedule:
+    # GMT+8每週一早上8點執行
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+    inputs:
+      page:
+        default: 1
+
+jobs:
+  query data:
+    runs-on: ubuntu-latest
+    outputs:
+      one_o_four_data: ${{ steps.query_one_o_four.outputs.data }}
+
+    steps:
+      - name: Get query string
+        id: get_query_string
+        run: |
+          payload_json='{"area": ["6001001004", "6001001007", "6001001011", "6001001010"], "jobsource": "joblist_search", "mode": "s", "order": "15", "scstrict": 1, "scmin": 60000, "sctp": "M", "sortBy": "15", "pageSize": 30, "scneg": 1, "page": "${{ github.event.inputs.page }}", "keyword": ["frontend", "front-end"]}'
+
+          QS=""
+
+          # Use jq to iterate over the keys and values
+          jq -c 'to_entries[]' <<< "$payload_json" | while read -r entry; do
+              key=$(echo "$entry" | jq -r .key)
+              value=$(echo "$entry" | jq -r .value)
+
+              if [[ "$value" == "["*"]" ]]; then
+                cleaned_value=$(echo "$value" | jq -r 'join(",")')
+                encoded_value=$(echo "$cleaned_value" | sed 's/,/%2C/g')
+              else
+                # Otherwise, just URL-encode the value
+                encoded_value=$(echo "$value" | jq -r @uri)
+              fi
+
+              if [[ -z "$QS" ]]; then
+                QS="${key}=${encoded_value}"
+              else
+                QS="${QS}&${key}=${encoded_value}"
+              fi
+          done
+
+          echo "query_string=$QS" >> "$GITHUB_OUTPUT"
+
+      - name: Get random User-Agent
+        id: get_ua
+        run: |
+          UAS=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0"
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15"
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+          )
+
+          UA="${UAS[$RANDOM % ${#UAS[@]}]}"
+          echo "user_agent=$UA" >> "$GITHUB_OUTPUT"
+
+      - name: query One O Four
+        id: query_one_o_four
+        run: |
+          echo ${{ steps.get_query_string.query_string }}"
+          echo ${{ steps.get_ua.outputs.user_agent }}"
+          echo $QS
+          echo $UA
+
+      # - name: Filter Data
+      #   run: |
+
+          
+
+  
